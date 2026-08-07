@@ -1,0 +1,330 @@
+/* ------------------------------------------------------------------ */
+/* portfolio styles — warm paper + ink, editorial kind of vibe         */
+/* hand-rolled, no framework, just plain css                          */
+/* ------------------------------------------------------------------ */
+
+:root {
+  --paper:   #f6f1e7;   /* warm background, like old notebook pages */
+  --card:    #fffdf7;   /* the cream cards on top */
+  --ink:     #26231c;   /* near-black text */
+  --soft:    #6f6759;   /* muted secondary text */
+  --accent:  #d1492c;   /* burnt orange — used for marks + numbers */
+  --green:   #2f7d6b;   /* deep green — dates and meta lines */
+  --line:    #e7dfcf;   /* hairlines between things */
+  --shadow:  #ece3d0;   /* hard offset shadow, keeps it flat & printed */
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.65;
+  padding: 24px 0 60px;
+}
+
+/* tiny dotted texture so the paper does not look too flat */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(38, 35, 28, 0.05) 1px, transparent 1px);
+  background-size: 22px 22px;
+  z-index: 0;
+}
+
+.page {
+  position: relative;
+  z-index: 1;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* ---------- header ---------- */
+
+.header {
+  padding: 46px 8px 30px;
+}
+
+.header-tag {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+
+.header h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 3.1rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.headline {
+  margin-top: 8px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-size: 1.3rem;
+  color: var(--green);
+}
+
+/* hand-drawn double underline under the name */
+.header h1 {
+  display: inline-block;
+  border-bottom: 3px solid var(--ink);
+  padding-bottom: 6px;
+  box-shadow: inset 0 -6px 0 -3px var(--accent);
+}
+
+/* ---------- sections ---------- */
+
+.section {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: 6px 6px 0 -2px var(--shadow);
+  padding: 26px 28px;
+  margin-top: 26px;
+}
+
+.section h2 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.sec-num {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.85rem;
+  color: var(--accent);
+}
+
+/* summary */
+
+.summary-text {
+  color: var(--soft);
+  font-size: 1.02rem;
+  padding-left: 16px;
+  border-left: 3px solid var(--accent);
+}
+
+/* ---------- skills: rough tags ---------- */
+
+.chip-list {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.chip-list li {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.85rem;
+  border: 1px dashed var(--green);
+  color: var(--green);
+  background: #f4faf7;
+  padding: 5px 12px;
+  border-radius: 4px;
+}
+
+.chip-list li:hover {
+  background: var(--green);
+  color: #fff;
+  border-style: solid;
+}
+
+/* ---------- experience + education: the timeline ---------- */
+
+.timeline-item {
+  position: relative;
+  padding-left: 26px;
+  padding-bottom: 22px;
+  border-left: 2px solid var(--line);
+}
+
+.timeline-item:last-child {
+  border-left-color: transparent;
+}
+
+.timeline-item::before {
+  content: "";
+  position: absolute;
+  left: -6px;
+  top: 5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 2px solid var(--accent);
+}
+
+.timeline-date {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.03em;
+  color: var(--green);
+  margin-bottom: 4px;
+}
+
+.timeline-item h3 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.05rem;
+}
+
+.timeline-place {
+  color: var(--soft);
+  font-size: 0.9rem;
+}
+
+.timeline-desc {
+  margin-top: 6px;
+  color: var(--soft);
+  font-size: 0.95rem;
+}
+
+/* ---------- projects: two-column cards ---------- */
+
+.project-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.project-card {
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--accent);
+  border-radius: 4px;
+  padding: 16px;
+  background: #fbf8f0;
+}
+
+.project-card h3 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.02rem;
+  margin-bottom: 8px;
+}
+
+.project-tech {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.project-desc {
+  color: var(--soft);
+  font-size: 0.92rem;
+}
+
+/* ---------- achievements: numbered ---------- */
+
+.achieve-list {
+  list-style: none;
+  counter-reset: ach;
+}
+
+.achieve-list li {
+  counter-increment: ach;
+  display: flex;
+  gap: 14px;
+  padding: 8px 0;
+  border-bottom: 1px dotted var(--line);
+  color: var(--soft);
+  font-size: 0.95rem;
+}
+
+.achieve-list li:last-child {
+  border-bottom: none;
+}
+
+.achieve-list li::before {
+  content: counter(ach, decimal-leading-zero);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* ---------- contact: plain text links ---------- */
+
+.contact-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 26px;
+}
+
+.contact-link {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.92rem;
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 2px;
+}
+
+.contact-link:hover {
+  color: var(--accent);
+}
+
+/* ---------- footer ---------- */
+
+.footer {
+  max-width: 880px;
+  margin: 34px auto 0;
+  padding: 0 20px;
+  text-align: center;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  color: var(--soft);
+}
+
+/* ---------- small screens ---------- */
+
+@media (max-width: 640px) {
+  .header h1 {
+    font-size: 2.2rem;
+  }
+  .project-grid {
+    grid-template-columns: 1fr;
+  }
+  .section {
+    padding: 20px;
+    box-shadow: 4px 4px 0 -2px var(--shadow);
+  }
+}
+
+/* ---------- print ---------- */
+
+@media print {
+  body {
+    background: #fff;
+    padding: 0;
+  }
+  body::before {
+    display: none;
+  }
+  .section {
+    box-shadow: none;
+    border-color: #ccc;
+    page-break-inside: avoid;
+  }
+  .footer {
+    display: none;
+  }
+}
