@@ -1,0 +1,36 @@
+ANANYA VERMA
+
+Junior Software Developer
+
+Email: ananya.verma@example.com
+Phone: +91 98765 43210
+LinkedIn: linkedin.com/in/ananya-verma
+GitHub: github.com/ananyaverma
+
+PROFESSIONAL SUMMARY
+Computer Science student with practical experience building responsive web applications and Python APIs. Interested in creating reliable, easy-to-use software.
+
+SKILLS
+- Programming: Python, JavaScript, SQL
+- Web Development: HTML, CSS, Flask, React
+- Tools: Git, GitHub, VS Code, Postman
+
+EDUCATION
+B.Tech in Computer Science
+Example Institute of Technology
+2022 - 2026
+
+EXPERIENCE
+Software Developer Intern
+PixelWorks Labs | June 2025 - August 2025
+- Built Flask API endpoints for a student portal.
+- Added unit tests and improved response times.
+
+PROJECTS
+StudySpace - Student Planner
+Technologies: Python, Flask, SQLite, HTML, CSS
+Built a planner for students to track tasks and deadlines.
+
+ACHIEVEMENTS
+- Completed a Python web development course.
+- Volunteered as a coding-club mentor.

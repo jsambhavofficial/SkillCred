@@ -21,6 +21,11 @@ import re
 import sys
 
 from dotenv import load_dotenv
+try:
+    from flask import Flask, jsonify, render_template, request
+    from werkzeug.utils import secure_filename
+except ImportError:
+    Flask = None
 
 try:
     from google import genai
@@ -36,6 +41,11 @@ OUTPUT_FILE = os.path.join(BASE_DIR, "portfolio.html")
 
 DEFAULT_MODEL = "gemini-3.6-flash"
 MIN_RESUME_LENGTH = 80
+MAX_UPLOAD_SIZE = 2 * 1024 * 1024
+
+app = Flask(__name__) if Flask is not None else None
+if app is not None:
+    app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_SIZE
 
 # ---------------------------------------------------------------------------
 # Errors
@@ -627,6 +637,194 @@ def write_output(path, content):
 
 
 # ---------------------------------------------------------------------------
+# Web resume builder
+# ---------------------------------------------------------------------------
+
+
+def extract_resume_data(resume_text):
+    """Extract validated resume data from uploaded text using Gemini."""
+    cleaned = clean_text(resume_text)
+    if not cleaned:
+        raise InputError("The uploaded file is empty.")
+    if len(cleaned) < MIN_RESUME_LENGTH:
+        raise InputError(
+            f"Resume is too short ({len(cleaned)} characters). "
+            f"Add at least {MIN_RESUME_LENGTH} characters of meaningful content."
+        )
+
+    load_env()
+    api_key = get_api_key()
+    model_name = os.getenv("GEMINI_MODEL", "").strip() or DEFAULT_MODEL
+    raw = call_gemini(build_prompt(cleaned), api_key, model_name)
+    return validate_and_complete(extract_json(raw))
+
+
+def extract_resume_data_locally(resume_text):
+    """Create a conservative resume structure when the AI service is unavailable.
+
+    This intentionally only copies text from the uploaded resume. It is less
+    polished than Gemini's result, but keeps the web builder useful offline or
+    on networks that block the Gemini API.
+    """
+    cleaned = clean_text(resume_text)
+    if not cleaned:
+        raise InputError("The uploaded file is empty.")
+    if len(cleaned) < MIN_RESUME_LENGTH:
+        raise InputError(
+            f"Resume is too short ({len(cleaned)} characters). "
+            f"Add at least {MIN_RESUME_LENGTH} characters of meaningful content."
+        )
+
+    headings = {
+        "PROFESSIONAL SUMMARY": "summary",
+        "SUMMARY": "summary",
+        "SKILLS": "skills",
+        "TECHNICAL SKILLS": "skills",
+        "EXPERIENCE": "experience",
+        "WORK EXPERIENCE": "experience",
+        "PROJECTS": "projects",
+        "EDUCATION": "education",
+        "ACHIEVEMENTS": "achievements",
+        "CERTIFICATIONS": "achievements",
+    }
+    sections = {key: [] for key in set(headings.values())}
+    intro = []
+    current = None
+    for line in cleaned.splitlines():
+        heading = headings.get(line.upper().rstrip(":"))
+        if heading:
+            current = heading
+        elif current:
+            sections[current].append(line)
+        else:
+            intro.append(line)
+
+    result = validate_and_complete({})
+    non_contact_intro = []
+    contact_patterns = {
+        "email": r"^email\s*:\s*(.+)$",
+        "phone": r"^(?:phone|mobile|tel)\s*:\s*(.+)$",
+        "linkedin": r"^linkedin\s*:\s*(.+)$",
+        "github": r"^github\s*:\s*(.+)$",
+        "website": r"^(?:website|portfolio)\s*:\s*(.+)$",
+    }
+    for line in intro:
+        matched = False
+        for key, pattern in contact_patterns.items():
+            match = re.match(pattern, line, re.IGNORECASE)
+            if match:
+                result["contact"][key] = match.group(1).strip()
+                matched = True
+                break
+        if not matched:
+            non_contact_intro.append(line)
+    if non_contact_intro:
+        result["name"] = non_contact_intro[0]
+    if len(non_contact_intro) > 1:
+        result["headline"] = non_contact_intro[1]
+
+    result["summary"] = " ".join(sections["summary"])
+    skills = []
+    for line in sections["skills"]:
+        value = re.sub(r"^[-*•]\s*", "", line)
+        value = re.sub(r"^[^:]+:\s*", "", value)
+        skills.extend(part.strip() for part in value.split(",") if part.strip())
+    result["skills"] = skills
+    result["achievements"] = [
+        re.sub(r"^[-*•]\s*", "", line)
+        for line in sections["achievements"]
+        if re.sub(r"^[-*•]\s*", "", line)
+    ]
+
+    education = sections["education"]
+    for index in range(0, len(education), 3):
+        group = education[index : index + 3]
+        if group:
+            result["education"].append(
+                {
+                    "degree": group[0],
+                    "institution": group[1] if len(group) > 1 else "",
+                    "year": group[2] if len(group) > 2 else "",
+                }
+            )
+
+    experience_lines = sections["experience"]
+    if experience_lines:
+        role = experience_lines[0]
+        details = experience_lines[1] if len(experience_lines) > 1 else ""
+        result["experience"].append(
+            {
+                "role": role,
+                "company": details,
+                "dates": "",
+                "description": " ".join(
+                    re.sub(r"^[-*•]\s*", "", line) for line in experience_lines[2:]
+                ),
+            }
+        )
+
+    project_lines = sections["projects"]
+    current_project = None
+    for line in project_lines:
+        if line.lower().startswith("technologies:") and current_project:
+            current_project["technologies"] = line.split(":", 1)[1].strip()
+        elif current_project is None or not current_project["technologies"]:
+            if current_project:
+                result["projects"].append(current_project)
+            current_project = {"title": line, "description": "", "technologies": ""}
+        else:
+            current_project["description"] = " ".join(
+                part for part in (current_project["description"], line) if part
+            )
+    if current_project:
+        result["projects"].append(current_project)
+
+    return result
+
+
+def resume_builder():
+    """Serve the interactive resume-builder page."""
+    return render_template("builder.html")
+
+
+def extract_uploaded_resume():
+    """Accept a .txt resume and return Gemini's structured data as JSON."""
+    uploaded = request.files.get("resume")
+    if uploaded is None or not uploaded.filename:
+        return jsonify(error="Please choose a .txt resume file."), 400
+
+    filename = secure_filename(uploaded.filename)
+    if not filename.lower().endswith(".txt"):
+        return jsonify(error="Only plain-text (.txt) files are supported."), 400
+
+    try:
+        raw_text = uploaded.read().decode("utf-8")
+    except UnicodeDecodeError:
+        return jsonify(error="The file must be UTF-8 encoded plain text."), 400
+
+    try:
+        return jsonify(data=extract_resume_data(raw_text), source="gemini")
+    except (GeminiError, ConfigError):
+        return jsonify(
+            data=extract_resume_data_locally(raw_text),
+            source="local",
+            warning="Gemini could not be reached, so a local text parser was used. Please review the extracted details.",
+        )
+    except ProjectError as exc:
+        return jsonify(error=str(exc)), 400
+
+
+def upload_too_large(_error):
+    return jsonify(error="The file is too large. Please upload a file under 2 MB."), 413
+
+
+if app is not None:
+    app.add_url_rule("/", view_func=resume_builder, methods=["GET"])
+    app.add_url_rule("/api/extract", view_func=extract_uploaded_resume, methods=["POST"])
+    app.register_error_handler(413, upload_too_large)
+
+
+# ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
 
@@ -646,7 +844,19 @@ def main(argv=None):
         action="store_true",
         help="Generate the portfolio from bundled sample data (no API key needed).",
     )
+    parser.add_argument(
+        "--serve",
+        action="store_true",
+        help="Start the interactive web resume builder at http://127.0.0.1:5000.",
+    )
     args = parser.parse_args(argv)
+
+    if args.serve:
+        if app is None:
+            print("[error] Flask is not installed. Run: pip install -r requirements.txt")
+            return 1
+        app.run(debug=True)
+        return 0
 
     try:
         load_env()
