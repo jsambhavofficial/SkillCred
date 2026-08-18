@@ -63,6 +63,25 @@ resume-portfolio-generator/
 
 ## Running the program
 
+### Interactive resume builder
+
+Start the web app with:
+
+```bash
+python main.py --serve
+```
+
+Then open <http://127.0.0.1:5000>. Upload a UTF-8 `.txt` resume, wait for the
+details to be extracted, choose from Classic, Modern, or Minimal templates, and
+adjust the accent, text, and paper colours with the live preview. The builder
+can save the design as HTML, a Word-compatible `.doc`, or as a PDF through the
+browser print dialog (select **Save as PDF**).
+
+The resume text is sent to Gemini only to extract structured resume details;
+the template and colour changes happen in your browser.
+
+### Command-line portfolio generator
+
 Put your resume in `resume.txt`, then run:
 
 ```bash
