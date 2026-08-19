@@ -1,156 +1,35 @@
 (() => {
-  const state = { data: null, template: "classic", accent: "#2d6a4f", ink: "#1f2933", paper: "#ffffff" };
-  const form = document.querySelector("#upload-form");
-  const fileInput = document.querySelector("#resume-file");
-  const fileLabel = document.querySelector("#file-label");
-  const status = document.querySelector("#upload-status");
-  const extractButton = document.querySelector("#extract-button");
-  const preview = document.querySelector("#resume-preview");
+  const state = { data: null, backgroundStyle: "plain", backgroundImage: "", accent: "#d94f30", heading: "#18211c", text: "#4d5750", background: "#fbfaf6", headingFont: "Georgia,serif", bodyFont: "Arial,sans-serif", navFont: "Arial,sans-serif", motion: true };
+  const $ = (s) => document.querySelector(s), $$ = (s) => document.querySelectorAll(s);
+  const clean = (v) => typeof v === "string" ? v.trim() : "";
+  const list = (v) => Array.isArray(v) ? v.filter(Boolean) : [];
+  const el = (tag, cls, value) => { const n = document.createElement(tag); if (cls) n.className = cls; if (value) n.textContent = value; return n; };
+  const url = (v) => /^https?:\/\//i.test(clean(v));
+  const preview = $("#portfolio-preview"), file = $("#resume-file"), status = $("#upload-status"), submit = $("#extract-button");
 
-  const text = (value) => typeof value === "string" ? value.trim() : "";
-  const values = (items) => Array.isArray(items) ? items.filter(Boolean) : [];
-
-  function element(tag, className, content) {
-    const node = document.createElement(tag);
-    if (className) node.className = className;
-    if (content) node.textContent = content;
-    return node;
+  function section(label, id) { const s = el("section", "portfolio-section"); s.id = id; s.append(el("p", "section-label", label)); return s; }
+  function makeLink(label, value) { const v = clean(value); if (!v) return null; const a = el("a", "contact-link", label); a.href = label === "Email" ? `mailto:${v}` : url(v) ? v : `https://${v.replace(/^@/, "")}`; a.target = "_blank"; a.rel = "noreferrer"; return a; }
+  function render() {
+    preview.replaceChildren(); preview.className = `portfolio background-${state.backgroundStyle}${state.motion ? " has-motion" : ""}`; preview.style.setProperty("--accent", state.accent); preview.style.setProperty("--ink", state.heading); preview.style.setProperty("--body-text", state.text); preview.style.setProperty("--paper", state.background); preview.style.setProperty("--heading-font", state.headingFont); preview.style.setProperty("--body-font", state.bodyFont); preview.style.setProperty("--nav-font", state.navFont); preview.style.setProperty("--custom-background", state.backgroundImage ? `url(${state.backgroundImage})` : "none");
+    const d = state.data;
+    if (!d) { preview.innerHTML = '<div class="empty-preview"><span>+</span><h2>Your portfolio will appear here.</h2><p>Start by uploading your resume.</p></div>'; return; }
+    const initials = (clean(d.name) || "Your Name").split(/\s+/).map(x => x[0]).slice(0, 2).join("");
+    const nav = el("nav", "site-nav"); nav.append(el("strong", "monogram", initials)); ["Work", "Experience", "About"].forEach(x => { const a = el("a", "", x); a.href = `#${x.toLowerCase()}`; nav.append(a); }); preview.append(nav);
+    const hero = el("header", "hero"); hero.append(el("p", "hero-kicker", clean(d.location) || "Available for opportunities")); hero.append(el("h1", "", clean(d.name) || "Your Name")); hero.append(el("p", "headline", clean(d.headline) || "Professional portfolio")); if (clean(d.summary)) hero.append(el("p", "summary", clean(d.summary)));
+    const contacts = el("div", "contact-links"); [["Email", d.contact?.email], ["LinkedIn", d.contact?.linkedin], ["GitHub", d.contact?.github], ["Website", d.contact?.website]].forEach(([k, v]) => { const a = makeLink(k, v); if (a) contacts.append(a); }); if (contacts.children.length) hero.append(contacts); preview.append(hero);
+    if (list(d.projects).length) { const s = section("Selected work", "work"), grid = el("div", "project-grid"); list(d.projects).forEach((p, i) => { const c = el("article", "project-card"); c.append(el("span", "project-index", String(i + 1).padStart(2, "0"))); c.append(el("h2", "", clean(p.title) || "Project")); if (clean(p.description)) c.append(el("p", "", clean(p.description))); if (clean(p.technologies)) c.append(el("p", "project-tech", clean(p.technologies))); if (url(p.url)) { const a = el("a", "project-link", "View project"); a.href = p.url; a.target = "_blank"; c.append(a); } grid.append(c); }); s.append(grid); preview.append(s); }
+    if (list(d.experience).length) { const s = section("Experience", "experience"), timeline = el("div", "timeline"); list(d.experience).forEach(j => { const r = el("article", "role"), c = el("div"); r.append(el("p", "role-date", clean(j.dates))); c.append(el("h2", "", clean(j.role) || "Role")); c.append(el("p", "role-company", clean(j.company))); if (clean(j.description)) c.append(el("p", "", clean(j.description))); r.append(c); timeline.append(r); }); s.append(timeline); preview.append(s); }
+    const about = section("About", "about"); if (list(d.skills).length) { about.append(el("h2", "", "Skills")); const skills = el("div", "skills"); list(d.skills).forEach((x, i) => { const chip = el("span", "skill"); const label = el("span", "skill-name", clean(x)); label.contentEditable = "true"; label.addEventListener("blur", () => { d.skills[i] = clean(label.textContent); render(); }); const remove = el("button", "remove-skill", "×"); remove.type = "button"; remove.title = "Remove skill"; remove.addEventListener("click", () => { d.skills.splice(i, 1); render(); }); chip.append(label, remove); skills.append(chip); }); about.append(skills); } if (list(d.education).length) { const ed = el("div", "education"); ed.append(el("h2", "", "Education")); list(d.education).forEach(x => ed.append(el("p", "", [clean(x.degree), clean(x.institution), clean(x.year)].filter(Boolean).join(" / ")))); about.append(ed); } preview.append(about); preview.append(el("footer", "site-footer", `© ${new Date().getFullYear()} ${clean(d.name) || "Your Name"}`));
+    preview.querySelectorAll(".hero h1,.headline,.summary,.project-card h2,.project-card p,.role h2,.role-company,.role div>p:last-child,.education p").forEach(n => { n.contentEditable = "true"; n.spellcheck = true; n.title = "Click to edit"; }); $("#preview-name").textContent = clean(d.name) || "Your portfolio";
   }
-
-  function addSection(parent, title) {
-    const section = element("section");
-    section.append(element("h2", "", title));
-    parent.append(section);
-    return section;
-  }
-
-  function renderEntries(parent, entries, kind) {
-    values(entries).forEach((record) => {
-      const entry = element("div", "entry");
-      const title = kind === "education" ? text(record.degree) : text(record.role || record.title);
-      const place = kind === "education" ? text(record.institution) : text(record.company || record.technologies);
-      const dates = text(record.year || record.dates);
-      if (title) entry.append(element("p", "entry-title", title));
-      const meta = [place, dates].filter(Boolean).join("  |  ");
-      if (meta) entry.append(element("p", "entry-meta", meta));
-      const description = text(record.description);
-      if (description) entry.append(element("p", kind === "projects" ? "project-description" : "", description));
-      parent.append(entry);
-    });
-  }
-
-  function renderResume() {
-    preview.replaceChildren();
-    preview.className = `resume template-${state.template}`;
-    preview.style.setProperty("--accent", state.accent);
-    preview.style.setProperty("--ink", state.ink);
-    preview.style.setProperty("--paper", state.paper);
-    const data = state.data;
-    if (!data) {
-      preview.innerHTML = '<div class="empty-preview"><span>✦</span><h2>Your resume preview will appear here.</h2><p>Upload a .txt file to begin.</p></div>';
-      return;
-    }
-
-    const header = element("header", "resume-header");
-    header.append(element("h1", "", text(data.name) || "Your Name"));
-    if (text(data.headline)) header.append(element("p", "resume-headline", text(data.headline)));
-    const contactItems = [data.contact?.email, data.contact?.phone, data.contact?.linkedin, data.contact?.github, data.contact?.website].map(text).filter(Boolean);
-    if (contactItems.length) {
-      const contact = element("div", "contact");
-      contactItems.forEach((item) => contact.append(element("span", "", item)));
-      header.append(contact);
-    }
-    preview.append(header);
-
-    if (text(data.summary)) {
-      const section = addSection(preview, "Profile");
-      section.append(element("p", "summary", text(data.summary)));
-    }
-    if (values(data.skills).length) {
-      const section = addSection(preview, "Skills");
-      const skills = element("div", "skills");
-      values(data.skills).forEach((skill) => skills.append(element("span", "skill", text(skill))));
-      section.append(skills);
-    }
-    if (values(data.experience).length) {
-      const section = addSection(preview, "Experience");
-      renderEntries(section, data.experience, "experience");
-    }
-    if (values(data.projects).length) {
-      const section = addSection(preview, "Projects");
-      renderEntries(section, data.projects, "projects");
-    }
-    if (values(data.education).length) {
-      const section = addSection(preview, "Education");
-      renderEntries(section, data.education, "education");
-    }
-    if (values(data.achievements).length) {
-      const section = addSection(preview, "Achievements");
-      const list = element("ul", "list");
-      values(data.achievements).forEach((achievement) => list.append(element("li", "", text(achievement))));
-      section.append(list);
-    }
-    document.querySelector("#preview-name").textContent = text(data.name) || "Your resume";
-  }
-
-  function activateDesigner() {
-    document.querySelectorAll(".disabled-until-data").forEach((panel) => panel.classList.remove("disabled-until-data"));
-  }
-
-  fileInput.addEventListener("change", () => {
-    fileLabel.textContent = fileInput.files[0]?.name || "Choose a .txt file";
-    status.textContent = "";
-    status.className = "status";
-  });
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    if (!fileInput.files[0]) return;
-    extractButton.disabled = true;
-    extractButton.textContent = "Extracting details…";
-    status.className = "status";
-    status.textContent = "Reading your resume and arranging its information…";
-    try {
-      const response = await fetch("/api/extract", { method: "POST", body: new FormData(form) });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Could not extract the resume.");
-      state.data = result.data;
-      activateDesigner();
-      renderResume();
-      status.className = result.warning ? "status" : "status success";
-      status.textContent = result.warning || "Details extracted. Choose a style and save your resume.";
-    } catch (error) {
-      status.className = "status error";
-      status.textContent = error.message || "Something went wrong. Please try again.";
-    } finally {
-      extractButton.disabled = false;
-      extractButton.textContent = "Extract resume details";
-    }
-  });
-
-  document.querySelectorAll(".template-option").forEach((button) => button.addEventListener("click", () => {
-    state.template = button.dataset.template;
-    document.querySelectorAll(".template-option").forEach((option) => option.classList.toggle("selected", option === button));
-    renderResume();
-  }));
-  [["#accent-colour", "accent"], ["#ink-colour", "ink"], ["#paper-colour", "paper"]].forEach(([selector, key]) => {
-    document.querySelector(selector).addEventListener("input", (event) => { state[key] = event.target.value; renderResume(); });
-  });
-
-  function exportDocument(extension, mimeType) {
-    if (!state.data) return;
-    const style = document.querySelector('link[href*="builder.css"]');
-    const styleUrl = style ? new URL(style.href, window.location.href).href : "";
-    const documentHtml = `<!doctype html><html><head><meta charset="utf-8"><title>${text(state.data.name) || "Resume"}</title><link rel="stylesheet" href="${styleUrl}"></head><body><main class="workspace"><section class="preview-area"><div class="paper-wrap">${preview.outerHTML}</div></section></main></body></html>`;
-    const blob = new Blob([documentHtml], { type: mimeType });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `${(text(state.data.name) || "resume").replace(/[^a-z0-9]+/gi, "-").toLowerCase()}-resume.${extension}`;
-    link.click();
-    URL.revokeObjectURL(link.href);
-  }
-  document.querySelector("#pdf-button").addEventListener("click", () => { if (state.data) window.print(); });
-  document.querySelector("#word-button").addEventListener("click", () => exportDocument("doc", "application/msword"));
-  document.querySelector("#html-button").addEventListener("click", () => exportDocument("html", "text/html"));
-  renderResume();
+  file.addEventListener("change", () => { $("#file-label").textContent = file.files[0]?.name || "Choose a .txt file"; status.textContent = ""; status.className = "status"; });
+  $("#upload-form").addEventListener("submit", async e => { e.preventDefault(); if (!file.files[0]) return; submit.disabled = true; submit.textContent = "Building portfolio..."; status.textContent = "Extracting your resume details..."; try { const res = await fetch("/api/extract", { method: "POST", body: new FormData(e.target) }), result = await res.json(); if (!res.ok) throw new Error(result.error || "Could not read the resume."); state.data = result.data; $$(".disabled-until-data").forEach(x => x.classList.remove("disabled-until-data")); render(); status.className = result.warning ? "status" : "status success"; status.textContent = result.warning || "Portfolio created. Review the live preview and download it when ready."; } catch (err) { status.className = "status error"; status.textContent = err.message || "Something went wrong."; } finally { submit.disabled = false; submit.textContent = "Create my portfolio"; } });
+  $$(".background-option").forEach(b => b.addEventListener("click", () => { state.backgroundStyle = b.dataset.background; state.backgroundImage = ""; $("#background-file").value = ""; $$(".background-option").forEach(x => x.classList.toggle("selected", x === b)); render(); }));
+  [["#accent-colour", "accent"], ["#heading-colour", "heading"], ["#text-colour", "text"], ["#background-colour", "background"]].forEach(([selector, key]) => $(selector).addEventListener("input", e => { state[key] = e.target.value; render(); }));
+  [["#heading-font", "headingFont"], ["#body-font", "bodyFont"], ["#nav-font", "navFont"]].forEach(([selector, key]) => $(selector).addEventListener("change", e => { state[key] = e.target.value; render(); }));
+  $("#background-file").addEventListener("change", e => { const image = e.target.files[0]; if (!image) return; const reader = new FileReader(); reader.addEventListener("load", () => { state.backgroundStyle = "custom"; state.backgroundImage = reader.result; $$(".background-option").forEach(x => x.classList.remove("selected")); render(); }); reader.readAsDataURL(image); });
+  function addSkill() { const input = $("#new-skill"), skill = clean(input.value); if (!skill || !state.data) return; state.data.skills = [...list(state.data.skills), skill]; input.value = ""; render(); }
+  $("#add-skill").addEventListener("click", addSkill); $("#new-skill").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addSkill(); } });
+  $("#motion-toggle").addEventListener("change", e => { state.motion = e.target.checked; render(); }); $("#pdf-button").addEventListener("click", () => state.data && window.print());
+  $("#html-button").addEventListener("click", async () => { if (!state.data) return; const css = await fetch("/static/builder.css").then(r => r.text()); const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${clean(state.data.name) || "Portfolio"}</title><style>${css}</style></head><body><div class="download-site">${preview.outerHTML}</div></body></html>`; const blob = new Blob([html], { type: "text/html" }), a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `${(clean(state.data.name) || "portfolio").replace(/[^a-z0-9]+/gi, "-").toLowerCase()}-portfolio.html`; a.click(); URL.revokeObjectURL(a.href); }); render();
 })();

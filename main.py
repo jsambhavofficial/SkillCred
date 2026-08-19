@@ -1,4 +1,4 @@
-"""Interactive resume builder. Run: python main.py --serve"""
+"""Resume-to-portfolio generator. Run: python main.py --serve"""
 
 import argparse
 import json
@@ -52,11 +52,11 @@ def normalise(data):
         raise ResumeError("The extracted resume data was not valid.")
     contact = data.get("contact") if isinstance(data.get("contact"), dict) else {}
     return {
-        "name": text(data.get("name")), "headline": text(data.get("headline")), "summary": text(data.get("summary")),
+        "name": text(data.get("name")), "headline": text(data.get("headline")), "summary": text(data.get("summary")), "location": text(data.get("location")),
         "skills": [text(item) for item in data.get("skills", []) if text(item)] if isinstance(data.get("skills"), list) else [],
         "education": records(data.get("education"), ("degree", "institution", "year")),
         "experience": records(data.get("experience"), ("role", "company", "dates", "description")),
-        "projects": records(data.get("projects"), ("title", "description", "technologies")),
+        "projects": records(data.get("projects"), ("title", "description", "technologies", "url")),
         "achievements": [text(item) for item in data.get("achievements", []) if text(item)] if isinstance(data.get("achievements"), list) else [],
         "contact": {key: text(contact.get(key)) for key in ("email", "phone", "linkedin", "github", "website")},
     }
@@ -78,7 +78,7 @@ def extract_with_gemini(resume):
     key = os.getenv("GEMINI_API_KEY", "").strip()
     if not key:
         raise ResumeError("GEMINI_API_KEY is not configured.")
-    schema = '''{"name":"string","headline":"string","summary":"string","skills":["string"],"education":[{"degree":"string","institution":"string","year":"string"}],"experience":[{"role":"string","company":"string","dates":"string","description":"string"}],"projects":[{"title":"string","description":"string","technologies":"string"}],"achievements":["string"],"contact":{"email":"string","phone":"string","linkedin":"string","github":"string","website":"string"}}'''
+    schema = '''{"name":"string","headline":"string","summary":"string","location":"string","skills":["string"],"education":[{"degree":"string","institution":"string","year":"string"}],"experience":[{"role":"string","company":"string","dates":"string","description":"string"}],"projects":[{"title":"string","description":"string","technologies":"string","url":"string"}],"achievements":["string"],"contact":{"email":"string","phone":"string","linkedin":"string","github":"string","website":"string"}}'''
     prompt = f"Convert this resume to JSON using exactly this schema: {schema}. Use only facts in the resume; never invent details. Return JSON only.\n\nRESUME:\n{resume}"
     try:
         response = genai.Client(api_key=key).models.generate_content(
@@ -121,6 +121,9 @@ def extract_locally(resume):
     if len(details) > 1:
         data["headline"] = details[1]
     data["summary"] = " ".join(sections["summary"])
+    location_match = re.search(r"(?:location|address|based in)\s*:\s*(.+)", resume, re.I)
+    if location_match:
+        data["location"] = location_match.group(1).strip()
     data["skills"] = [item.strip() for line in sections["skills"] for item in re.sub(r"^[^:]+:\s*|^[-*•]\s*", "", line).split(",") if item.strip()]
     data["achievements"] = [re.sub(r"^[-*•]\s*", "", line) for line in sections["achievements"]]
 
@@ -134,7 +137,8 @@ def extract_locally(resume):
     if projects:
         technology = next((line.split(":", 1)[1].strip() for line in projects[1:] if line.lower().startswith("technologies:")), "")
         description = " ".join(line for line in projects[1:] if not line.lower().startswith("technologies:"))
-        data["projects"].append({"title": projects[0], "technologies": technology, "description": description})
+        url_match = next((line.strip() for line in projects[1:] if re.match(r"https?://", line.strip(), re.I)), "")
+        data["projects"].append({"title": projects[0], "technologies": technology, "description": description, "url": url_match})
     return data
 
 
@@ -171,8 +175,8 @@ if app is not None:
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Start the interactive resume builder.")
-    parser.add_argument("--serve", action="store_true", help="Start the builder at http://127.0.0.1:5000.")
+    parser = argparse.ArgumentParser(description="Start the resume-to-portfolio generator.")
+    parser.add_argument("--serve", action="store_true", help="Start the generator at http://127.0.0.1:5000.")
     parser.parse_args(argv)
     if app is None:
         print("[error] Flask is not installed. Run: pip install -r requirements.txt")

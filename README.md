@@ -1,7 +1,7 @@
-# Resume Studio
+# Portfolio Forge
 
 A lightweight web app that turns a plain-text resume into a customisable,
-downloadable resume.
+downloadable personal portfolio website.
 
 ## Run it
 
@@ -13,13 +13,14 @@ python main.py --serve
 ```
 
 Open <http://127.0.0.1:5000> and upload a UTF-8 `.txt` file. The included
-`resume.txt` is a ready-to-use example.
+`resume.txt` is a ready-to-use example. Review the generated site, choose a
+theme, and download a standalone HTML portfolio ready for hosting.
 
 ## Features
 
-- Three live templates: Classic, Modern, and Minimal
-- Accent, text, and paper colour controls
-- HTML, Word-compatible `.doc`, and print-to-PDF downloads
+- Three live portfolio themes: Editorial, Midnight, and Minimal
+- Accent colour control
+- Standalone HTML export and print support
 - Gemini-powered extraction when `GEMINI_API_KEY` is in `.env`
 - Offline local extraction fallback when Gemini is unavailable
 
