@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ name }} - Portfolio</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(17, 24, 39, 0.7);
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent-gradient: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+      --accent-solid: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.15);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.6;
+      padding: 40px 0 80px;
+      overflow-x: hidden;
+    }
+
+    /* Ambient background glows */
+    body::before, body::after {
+      content: "";
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::before {
+      top: -100px;
+      right: -100px;
+    }
+    body::after {
+      bottom: 100px;
+      left: -100px;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Header */
+    .header {
+      margin-bottom: 40px;
+      padding-bottom: 30px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header-tag {
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: var(--accent-solid);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 12px;
+    }
+
+    .header h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 12px;
+    }
+
+    .headline {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Sections */
+    .section {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .section h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sec-num {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--accent-solid);
+      font-family: monospace;
+      background: var(--accent-glow);
+      padding: 2px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+
+    /* Summary */
+    .summary-text {
+      font-size: 1.05rem;
+      color: #e5e7eb;
+      line-height: 1.7;
+    }
+
+    /* Skills */
+    .chip-list {
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip-list li {
+      font-size: 0.875rem;
+      font-weight: 500;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 9999px;
+      color: #e5e7eb;
+      transition: all 0.2s ease;
+    }
+
+    .chip-list li:hover {
+      background: var(--accent-solid);
+      color: var(--bg);
+      border-color: var(--accent-solid);
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+      transform: translateY(-2px);
+    }
+
+    /* Timeline */
+    .timeline-item {
+      position: relative;
+      padding-left: 28px;
+      padding-bottom: 24px;
+      border-left: 1px solid var(--border);
+    }
+
+    .timeline-item:last-child {
+      border-left: none;
+      padding-bottom: 0;
+    }
+
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      left: -5px;
+      top: 8px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--bg);
+      border: 2px solid var(--accent-solid);
+      box-shadow: 0 0 8px var(--accent-solid);
+    }
+
+    .timeline-date {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent-solid);
+      margin-bottom: 6px;
+      font-family: monospace;
+    }
+
+    .timeline-item h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .timeline-place {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .timeline-desc {
+      font-size: 0.95rem;
+      color: #9ca3af;
+    }
+
+    /* Projects Grid */
+    .project-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .project-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      transition: all 0.2s ease;
+    }
+
+    .project-card:hover {
+      border-color: rgba(56, 189, 248, 0.3);
+      background: rgba(255, 255, 255, 0.04);
+      transform: translateY(-2px);
+    }
+
+    .project-card h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .project-tech {
+      font-family: monospace;
+      font-size: 0.75rem;
+      color: var(--accent-solid);
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+    }
+
+    .project-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* Achievements */
+    .achieve-list {
+      list-style: none;
+    }
+
+    .achieve-list li {
+      position: relative;
+      padding-left: 28px;
+      padding-top: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: #d1d5db;
+    }
+
+    .achieve-list li:last-child {
+      border-bottom: none;
+    }
+
+    .achieve-list li::before {
+      content: "✦";
+      position: absolute;
+      left: 6px;
+      color: var(--accent-solid);
+      font-size: 0.9rem;
+    }
+
+    /* Contact */
+    .contact-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 24px;
+    }
+
+    .contact-link {
+      font-size: 0.92rem;
+      color: var(--text);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding-bottom: 2px;
+      font-family: monospace;
+      transition: all 0.2s ease;
+    }
+
+    .contact-link:hover {
+      color: var(--accent-solid);
+      border-color: var(--accent-solid);
+      text-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      font-family: monospace;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 40px;
+    }
+
+    @media (max-width: 640px) {
+      .header h1 {
+        font-size: 2.25rem;
+      }
+      .project-grid {
+        grid-template-columns: 1fr;
+      }
+      .section {
+        padding: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    {% if name or headline %}
+    <header class="header">
+      <p class="header-tag">// portfolio</p>
+      {% if name %}
+      <h1>{{ name }}</h1>
+      {% endif %}
+      {% if headline %}
+      <p class="headline">{{ headline }}</p>
+      {% endif %}
+    </header>
+    {% endif %}
+
+    {% if summary %}
+    <section class="section about" id="summary">
+      <h2><span class="sec-num">01.</span> Summary</h2>
+      <p class="summary-text">{{ summary }}</p>
+    </section>
+    {% endif %}
+
+    {% if skills %}
+    <section class="section" id="skills">
+      <h2><span class="sec-num">02.</span> Skills</h2>
+      <ul class="chip-list">
+        {% for skill in skills %}
+        <li>{{ skill }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    {% if experience %}
+    <section class="section" id="experience">
+      <h2><span class="sec-num">03.</span> Experience</h2>
+      {% for exp in experience %}
+      <div class="timeline-item">
+        <p class="timeline-date">
+          {% if exp.company and exp.dates %}
+            {{ exp.company }} &middot; {{ exp.dates }}
+          {% else %}
+            {{ exp.company }}{{ exp.dates }}
+          {% endif %}
+        </p>
+        <h3>{{ exp.role }}</h3>
+        {% if exp.description %}
+        <p class="timeline-desc">{{ exp.description }}</p>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if projects %}
+    <section class="section" id="projects">
+      <h2><span class="sec-num">04.</span> Projects</h2>
+      <div class="project-grid">
+        {% for proj in projects %}
+        <article class="project-card">
+          <h3>{{ proj.title }}</h3>
+          {% if proj.technologies %}
+          <p class="project-tech">{{ proj.technologies }}</p>
+          {% endif %}
+          {% if proj.description %}
+          <p class="project-desc">{{ proj.description }}</p>
+          {% endif %}
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    {% if education %}
+    <section class="section" id="education">
+      <h2><span class="sec-num">05.</span> Education</h2>
+      {% for edu in education %}
+      <div class="timeline-item">
+        <p class="timeline-date">{{ edu.year }}</p>
+        <h3>{{ edu.degree }}</h3>
+        <p class="timeline-place">{{ edu.institution }}</p>
+      </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if achievements %}
+    <section class="section" id="achievements">
+      <h2><span class="sec-num">06.</span> Achievements</h2>
+      <ul class="achieve-list">
+        {% for ach in achievements %}
+        <li>{{ ach }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    {% if contact and (contact.email or contact.phone or contact.linkedin or contact.github or contact.website) %}
+    <section class="section contact-section" id="contact">
+      <h2><span class="sec-num">07.</span> Contact</h2>
+      <div class="contact-links">
+        {% if contact.email %}
+        <a class="contact-link" href="mailto:{{ contact.email }}">{{ contact.email }}</a>
+        {% endif %}
+        {% if contact.phone %}
+        <a class="contact-link" href="tel:{{ contact.phone }}">{{ contact.phone }}</a>
+        {% endif %}
+        {% if contact.linkedin %}
+        <a class="contact-link" href="{{ contact.linkedin }}" target="_blank">LinkedIn</a>
+        {% endif %}
+        {% if contact.github %}
+        <a class="contact-link" href="{{ contact.github }}" target="_blank">GitHub</a>
+        {% endif %}
+        {% if contact.website %}
+        <a class="contact-link" href="{{ contact.website }}" target="_blank">Website</a>
+        {% endif %}
+      </div>
+    </section>
+    {% endif %}
+  </main>
+  <footer class="footer">
+    <p>made with python + gemini &middot; ai-drafted content, manually verified against resume.txt</p>
+  </footer>
+</body>
+</html>

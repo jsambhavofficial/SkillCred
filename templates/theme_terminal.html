@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ name }} - Terminal Portfolio</title>
+  <style>
+    :root {
+      --bg: #0d0e15;
+      --terminal-bg: #05070a;
+      --text: #39ff14; /* neon green */
+      --text-muted: #1b850a; /* dark green */
+      --accent: #00ffff; /* cyan */
+      --border: #1b850a;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: "Consolas", "Courier New", Courier, monospace;
+      line-height: 1.5;
+      padding: 30px 15px;
+    }
+
+    .page {
+      max-width: 840px;
+      margin: 0 auto;
+      background-color: var(--terminal-bg);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 0 20px rgba(27, 133, 10, 0.3);
+      padding: 24px;
+      position: relative;
+    }
+
+    /* Terminal window header */
+    .terminal-header {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 12px;
+      margin-bottom: 24px;
+      font-size: 0.85rem;
+      color: var(--accent);
+    }
+
+    .terminal-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+    }
+
+    .dot-red { background-color: #ff5f56; border: none; }
+    .dot-yellow { background-color: #ffbd2e; border: none; }
+    .dot-green { background-color: #27c93f; border: none; }
+
+    /* Header info */
+    .header {
+      margin-bottom: 30px;
+    }
+
+    .prompt-line {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .prompt-symbol {
+      color: var(--accent);
+    }
+
+    .header h1 {
+      font-size: 2.2rem;
+      font-weight: bold;
+    }
+
+    .headline {
+      font-size: 1.1rem;
+      color: var(--accent);
+      margin-top: 6px;
+    }
+
+    /* Sections */
+    .section {
+      margin-top: 30px;
+      border: 1px dashed var(--border);
+      padding: 18px;
+      border-radius: 4px;
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: var(--accent);
+      margin-bottom: 14px;
+      text-transform: uppercase;
+      display: inline-block;
+      border-bottom: 1px solid var(--accent);
+    }
+
+    /* Summary */
+    .summary-text {
+      color: var(--text);
+    }
+
+    /* Skills list */
+    .chip-list {
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chip-list li {
+      background: rgba(27, 133, 10, 0.1);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 3px;
+      font-size: 0.9rem;
+    }
+
+    .chip-list li::before {
+      content: "[+] ";
+      color: var(--accent);
+    }
+
+    /* Timeline style */
+    .timeline-item {
+      margin-bottom: 20px;
+      position: relative;
+      padding-left: 20px;
+    }
+
+    .timeline-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .timeline-item::before {
+      content: ">";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+    }
+
+    .timeline-date {
+      color: var(--accent);
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+    }
+
+    .timeline-item h3 {
+      font-size: 1.05rem;
+      font-weight: bold;
+    }
+
+    .timeline-place {
+      color: var(--text-muted);
+    }
+
+    .timeline-desc {
+      margin-top: 6px;
+      color: var(--text);
+    }
+
+    /* Projects grid */
+    .project-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .project-card {
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 14px;
+      background-color: rgba(27, 133, 10, 0.05);
+    }
+
+    .project-card h3 {
+      font-size: 1rem;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .project-tech {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .project-desc {
+      color: var(--text);
+      font-size: 0.9rem;
+    }
+
+    /* Achievements */
+    .achieve-list {
+      list-style: none;
+    }
+
+    .achieve-list li {
+      margin-bottom: 8px;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .achieve-list li:last-child {
+      margin-bottom: 0;
+    }
+
+    .achieve-list li::before {
+      content: "[*] ";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+    }
+
+    /* Contact link styling */
+    .contact-links {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .contact-link {
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+
+    .contact-link:hover {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+
+    .contact-link::before {
+      content: "$ ";
+      color: var(--accent);
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--border);
+      padding-top: 15px;
+    }
+
+    @media (max-width: 640px) {
+      .project-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="terminal-header">
+      <div class="terminal-dots">
+        <span class="dot dot-red"></span>
+        <span class="dot dot-yellow"></span>
+        <span class="dot dot-green"></span>
+      </div>
+      <span>visitor@{{ name|lower|replace(" ", "-")|default("portfolio") }}: ~</span>
+      <span>bash 4.4</span>
+    </div>
+
+    {% if name or headline %}
+    <header class="header">
+      <div class="prompt-line">
+        <span class="prompt-symbol">guest@portfolio:~$</span>
+        <span>whoami</span>
+      </div>
+      <h1>{{ name }}</h1>
+      {% if headline %}
+      <p class="headline">{{ headline }}</p>
+      {% endif %}
+    </header>
+    {% endif %}
+
+    {% if summary %}
+    <section class="section" id="summary">
+      <div class="section-title">cat summary.txt</div>
+      <p class="summary-text">{{ summary }}</p>
+    </section>
+    {% endif %}
+
+    {% if skills %}
+    <section class="section" id="skills">
+      <div class="section-title">echo $SKILLS</div>
+      <ul class="chip-list">
+        {% for skill in skills %}
+        <li>{{ skill }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    {% if experience %}
+    <section class="section" id="experience">
+      <div class="section-title">./show_experience.sh</div>
+      {% for exp in experience %}
+      <div class="timeline-item">
+        <p class="timeline-date">
+          {% if exp.company and exp.dates %}
+            {{ exp.company }} // {{ exp.dates }}
+          {% else %}
+            {{ exp.company }}{{ exp.dates }}
+          {% endif %}
+        </p>
+        <h3>{{ exp.role }}</h3>
+        {% if exp.description %}
+        <p class="timeline-desc">{{ exp.description }}</p>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if projects %}
+    <section class="section" id="projects">
+      <div class="section-title">ls -la ./projects</div>
+      <div class="project-grid">
+        {% for proj in projects %}
+        <article class="project-card">
+          <h3>{{ proj.title }}</h3>
+          {% if proj.technologies %}
+          <p class="project-tech">Tech: {{ proj.technologies }}</p>
+          {% endif %}
+          {% if proj.description %}
+          <p class="project-desc">{{ proj.description }}</p>
+          {% endif %}
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    {% if education %}
+    <section class="section" id="education">
+      <div class="section-title">cat education.md</div>
+      {% for edu in education %}
+      <div class="timeline-item">
+        <p class="timeline-date">{{ edu.year }}</p>
+        <h3>{{ edu.degree }}</h3>
+        <p class="timeline-place">{{ edu.institution }}</p>
+      </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if achievements %}
+    <section class="section" id="achievements">
+      <div class="section-title">cat achievements.log</div>
+      <ul class="achieve-list">
+        {% for ach in achievements %}
+        <li>{{ ach }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    {% if contact and (contact.email or contact.phone or contact.linkedin or contact.github or contact.website) %}
+    <section class="section contact-section" id="contact">
+      <div class="section-title">curl -X GET /contact_details</div>
+      <div class="contact-links">
+        {% if contact.email %}
+        <a class="contact-link" href="mailto:{{ contact.email }}">{{ contact.email }}</a>
+        {% endif %}
+        {% if contact.phone %}
+        <a class="contact-link" href="tel:{{ contact.phone }}">{{ contact.phone }}</a>
+        {% endif %}
+        {% if contact.linkedin %}
+        <a class="contact-link" href="{{ contact.linkedin }}" target="_blank">linkedin.com</a>
+        {% endif %}
+        {% if contact.github %}
+        <a class="contact-link" href="{{ contact.github }}" target="_blank">github.com</a>
+        {% endif %}
+        {% if contact.website %}
+        <a class="contact-link" href="{{ contact.website }}" target="_blank">website.com</a>
+        {% endif %}
+      </div>
+    </section>
+    {% endif %}
+  </main>
+  <footer class="footer">
+    <p>made with python + gemini &middot; terminal theme layout</p>
+  </footer>
+</body>
+</html>
